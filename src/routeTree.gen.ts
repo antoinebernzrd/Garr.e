@@ -18,6 +18,9 @@ import { Route as InviteTokenRouteImport } from './routes/invite.$token'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppIndexRouteImport } from './routes/_authenticated/app.index'
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
+import { Route as AuthenticatedAppNotificationsRouteImport } from './routes/_authenticated/app.notifications'
+import { Route as AuthenticatedAppGroupsRouteImport } from './routes/_authenticated/app.groups'
+import { Route as AuthenticatedAppFriendsRouteImport } from './routes/_authenticated/app.friends'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -63,6 +66,22 @@ const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
+const AuthenticatedAppNotificationsRoute =
+  AuthenticatedAppNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppGroupsRoute = AuthenticatedAppGroupsRouteImport.update({
+  id: '/groups',
+  path: '/groups',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppFriendsRoute = AuthenticatedAppFriendsRouteImport.update({
+  id: '/friends',
+  path: '/friends',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -71,6 +90,9 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/invite/$token': typeof InviteTokenRoute
+  '/app/friends': typeof AuthenticatedAppFriendsRoute
+  '/app/groups': typeof AuthenticatedAppGroupsRoute
+  '/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app/': typeof AuthenticatedAppIndexRoute
 }
@@ -80,6 +102,9 @@ export interface FileRoutesByTo {
   '/ps5': typeof Ps5Route
   '/signup': typeof SignupRoute
   '/invite/$token': typeof InviteTokenRoute
+  '/app/friends': typeof AuthenticatedAppFriendsRoute
+  '/app/groups': typeof AuthenticatedAppGroupsRoute
+  '/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
   '/app': typeof AuthenticatedAppIndexRoute
 }
@@ -92,6 +117,9 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/invite/$token': typeof InviteTokenRoute
+  '/_authenticated/app/friends': typeof AuthenticatedAppFriendsRoute
+  '/_authenticated/app/groups': typeof AuthenticatedAppGroupsRoute
+  '/_authenticated/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
   '/_authenticated/app/': typeof AuthenticatedAppIndexRoute
 }
@@ -104,6 +132,9 @@ export interface FileRouteTypes {
     | '/signup'
     | '/app'
     | '/invite/$token'
+    | '/app/friends'
+    | '/app/groups'
+    | '/app/notifications'
     | '/app/profile'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -113,6 +144,9 @@ export interface FileRouteTypes {
     | '/ps5'
     | '/signup'
     | '/invite/$token'
+    | '/app/friends'
+    | '/app/groups'
+    | '/app/notifications'
     | '/app/profile'
     | '/app'
   id:
@@ -124,6 +158,9 @@ export interface FileRouteTypes {
     | '/signup'
     | '/_authenticated/app'
     | '/invite/$token'
+    | '/_authenticated/app/friends'
+    | '/_authenticated/app/groups'
+    | '/_authenticated/app/notifications'
     | '/_authenticated/app/profile'
     | '/_authenticated/app/'
   fileRoutesById: FileRoutesById
@@ -202,15 +239,42 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppProfileRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/notifications': {
+      id: '/_authenticated/app/notifications'
+      path: '/notifications'
+      fullPath: '/app/notifications'
+      preLoaderRoute: typeof AuthenticatedAppNotificationsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/groups': {
+      id: '/_authenticated/app/groups'
+      path: '/groups'
+      fullPath: '/app/groups'
+      preLoaderRoute: typeof AuthenticatedAppGroupsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/friends': {
+      id: '/_authenticated/app/friends'
+      path: '/friends'
+      fullPath: '/app/friends'
+      preLoaderRoute: typeof AuthenticatedAppFriendsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
   }
 }
 
 interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppFriendsRoute: typeof AuthenticatedAppFriendsRoute
+  AuthenticatedAppGroupsRoute: typeof AuthenticatedAppGroupsRoute
+  AuthenticatedAppNotificationsRoute: typeof AuthenticatedAppNotificationsRoute
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
   AuthenticatedAppIndexRoute: typeof AuthenticatedAppIndexRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppFriendsRoute: AuthenticatedAppFriendsRoute,
+  AuthenticatedAppGroupsRoute: AuthenticatedAppGroupsRoute,
+  AuthenticatedAppNotificationsRoute: AuthenticatedAppNotificationsRoute,
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
   AuthenticatedAppIndexRoute: AuthenticatedAppIndexRoute,
 }

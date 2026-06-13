@@ -163,7 +163,7 @@ export function MapView({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [hoverId, setHoverId] = useState<string | null>(null);
   const [waving, setWaving] = useState(false);
-  const [isGlobe] = useState(true);
+  const [isGlobe, setIsGlobe] = useState(true);
 
   const { data: world } = useQuery({
     queryKey: ["world-atlas-110m"],

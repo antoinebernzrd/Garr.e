@@ -13,8 +13,9 @@ import { ComposeUpdateDialog } from "@/components/loop/compose-update-dialog";
 import { AddFriendDialog } from "@/components/loop/add-friend-dialog";
 import { ManageGroupsDialog } from "@/components/loop/manage-groups-dialog";
 import type { FriendWithUpdate, Profile } from "@/lib/types";
-import { LayoutGrid, Globe, Share2, Search, Users, Clock, Settings2 } from "lucide-react";
+import { LayoutGrid, Globe, Share2, Search, Users, Clock, Settings2, UserPlus, Layers, Bell } from "lucide-react";
 import { Avatar } from "@/components/loop/avatar";
+import { RequestsBell } from "@/components/loop/requests-bell";
 
 export const Route = createFileRoute("/_authenticated/app/")({
   component: Dashboard,
@@ -161,6 +162,30 @@ function Dashboard() {
             </span>
           </div>
           <div className="flex items-center gap-2">
+            <RequestsBell />
+            <nav className="mr-1 hidden items-center gap-0.5 sm:flex">
+              <Link
+                to="/app/friends"
+                title="Friends"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-soft transition hover:bg-accent hover:text-ink"
+              >
+                <UserPlus className="h-4 w-4" />
+              </Link>
+              <Link
+                to="/app/groups"
+                title="Groups"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-soft transition hover:bg-accent hover:text-ink"
+              >
+                <Layers className="h-4 w-4" />
+              </Link>
+              <Link
+                to="/app/notifications"
+                title="Notifications"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-soft transition hover:bg-accent hover:text-ink"
+              >
+                <Bell className="h-4 w-4" />
+              </Link>
+            </nav>
             <button
               onClick={() => setAdding(true)}
               className="hidden h-9 items-center rounded-full border border-border bg-card px-3 text-sm text-ink hover:bg-accent sm:inline-flex"
