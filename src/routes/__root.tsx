@@ -37,18 +37,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Loop — keep up with the friends that matter" },
+      { title: "Garr.e — a friend dashboard, not a feed" },
       {
         name: "description",
         content:
-          "Loop is a calm friend dashboard. See everyone you care about in one grid, plus a map of where they are. No feeds, no algorithm, no ads.",
+          "Garr.e is a calm friend dashboard. One card per person. One map of where everyone is. No feeds, no algorithm, no ads.",
       },
-      { property: "og:title", content: "Loop — keep up with the friends that matter" },
+      { property: "og:title", content: "Garr.e — a friend dashboard, not a feed" },
       {
         property: "og:description",
         content: "One card per friend. One map of the world. No infinite scroll.",
       },
-      { name: "twitter:title", content: "Loop — keep up with the friends that matter" },
+      { name: "twitter:title", content: "Garr.e — a friend dashboard, not a feed" },
       { name: "description", content: "Friend Grid is a social app that displays friends and their updates in a grid and map view." },
       { property: "og:description", content: "Friend Grid is a social app that displays friends and their updates in a grid and map view." },
       { name: "twitter:description", content: "Friend Grid is a social app that displays friends and their updates in a grid and map view." },
