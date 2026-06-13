@@ -6,7 +6,7 @@ function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
   const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "https://lrhzytpubtstyjwfxmot.supabase.co";
-  const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxyaHp5dHB1YnRzdHlqd2Z4bW90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg0MTMzNzMsImV4cCI6MjA5Mzk4OTM3M30.VanrCy-BGa812hgYbS15XN-C9Nq09vc2AaTgQ1BHdSQ";
+  const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || "sb_publishable_sczPuyjIKys4Wv96d8s2ew_VVGjhLy-";
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
     const missing = [
