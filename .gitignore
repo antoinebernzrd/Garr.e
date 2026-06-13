@@ -30,3 +30,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# .env is committed (publishable/public values only — see .env.example).
+# Local overrides and any file holding secrets stay ignored:
+.env.local
+.env.*.local
+.env.secret*

@@ -4,4 +4,11 @@
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  // Server-side runtime config (exposed via process.env with nodejs_compat).
+  // Publishable/public values only — set SUPABASE_SERVICE_ROLE_KEY as a secret:
+  //   wrangler secret put SUPABASE_SERVICE_ROLE_KEY
+  "vars": {
+    "SUPABASE_URL": "https://bsnikhvehdrdcmuqtkwy.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_sczPuyjIKys4Wv96d8s2ew_VVGjhLy-",
+  },
 }
