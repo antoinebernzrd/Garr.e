@@ -5,7 +5,7 @@ import type { Database } from './types';
 function createSupabaseClient() {
   // Use import.meta.env for client-side (Vite build-time replacement)
   // Fall back to process.env for SSR (server-side rendering)
-  const SUPABASE_URL = "https://lrhzytpubtstyjwfxmot.supabase.co";
+  const SUPABASE_URL = "https://bsnikhvehdrdcmuqtkwy.supabase.co";
   const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_sczPuyjIKys4Wv96d8s2ew_VVGjhLy-";
 
   if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
