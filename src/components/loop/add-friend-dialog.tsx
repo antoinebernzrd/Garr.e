@@ -24,7 +24,8 @@ export function AddFriendDialog({
   const [searching, setSearching] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
-  const [contactName, setContactName] = useState("");
+  const [contactFirst, setContactFirst] = useState("");
+  const [contactLast, setContactLast] = useState("");
   const [contactCity, setContactCity] = useState("");
   const [contactColor, setContactColor] = useState(AVATAR_COLORS[0]);
   const [creating, setCreating] = useState(false);
@@ -80,7 +81,10 @@ export function AddFriendDialog({
   // here. Stored as a profile you own (managed_by = you) + an auto-accepted
   // friendship, so they appear alongside real friends everywhere.
   async function createContact() {
-    if (!contactName.trim()) return;
+    const first = contactFirst.trim();
+    const last = contactLast.trim();
+    if (!first && !last) return;
+    const fullName = [first, last].filter(Boolean).join(" ");
     setCreating(true);
     const id =
       typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -88,7 +92,9 @@ export function AddFriendDialog({
         : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     const { error: pe } = await supabase.from("profiles").insert({
       id,
-      name: contactName.trim(),
+      name: fullName,
+      first_name: first || null,
+      last_name: last || null,
       city: contactCity.trim() || null,
       avatar_color: contactColor,
       managed_by: meId,
@@ -109,8 +115,9 @@ export function AddFriendDialog({
       toast.error(fe.message);
       return;
     }
-    toast.success(`${contactName.trim()} added as a contact`);
-    setContactName("");
+    toast.success(`${fullName} added as a contact`);
+    setContactFirst("");
+    setContactLast("");
     setContactCity("");
     onChanged();
     onClose();
@@ -218,13 +225,20 @@ export function AddFriendDialog({
               <div className="relative">
                 <UserPlus className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <input
-                  value={contactName}
-                  onChange={(e) => setContactName(e.target.value)}
+                  value={contactFirst}
+                  onChange={(e) => setContactFirst(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && createContact()}
-                  placeholder="Name (e.g. Mum, Léa Martin)"
+                  placeholder="First name"
                   className="h-10 w-full rounded-full border border-border bg-card pl-9 pr-3 text-sm outline-none focus:border-primary"
                 />
               </div>
+              <input
+                value={contactLast}
+                onChange={(e) => setContactLast(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && createContact()}
+                placeholder="Last name (optional)"
+                className="h-10 w-full rounded-full border border-border bg-card px-4 text-sm outline-none focus:border-primary"
+              />
               <input
                 value={contactCity}
                 onChange={(e) => setContactCity(e.target.value)}
@@ -250,7 +264,7 @@ export function AddFriendDialog({
               </div>
               <button
                 onClick={createContact}
-                disabled={creating || !contactName.trim()}
+                disabled={creating || (!contactFirst.trim() && !contactLast.trim())}
                 className="h-9 rounded-full bg-primary px-4 text-sm text-primary-foreground hover:opacity-90 disabled:opacity-60"
               >
                 {creating ? "Adding…" : "Add contact"}

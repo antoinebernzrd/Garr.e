@@ -14,7 +14,8 @@ export const Route = createFileRoute("/signup")({
 function SignUp() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -30,13 +31,18 @@ function SignUp() {
     e.preventDefault();
     setSubmitting(true);
     const cleanUsername = username.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+    const first = firstName.trim();
+    const last = lastName.trim();
+    const fullName = [first, last].filter(Boolean).join(" ");
     const { error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/app`,
         data: {
-          name: name.trim(),
+          name: fullName,
+          first_name: first,
+          last_name: last,
           username: cleanUsername,
           city: city.trim(),
           avatar_color: color,
@@ -62,7 +68,10 @@ function SignUp() {
         transition={{ delay: 0.35, duration: 0.5 }}
         className="flex w-full flex-col gap-3"
       >
-        <input required placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} className={inputCls} />
+        <div className="flex gap-3">
+          <input required placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputCls} />
+          <input placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputCls} />
+        </div>
         <input required placeholder="Username" value={username} onChange={(e) => setUsername(e.target.value)} className={inputCls} />
         <input type="email" required placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className={inputCls} />
         <input type="password" minLength={8} required placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} />

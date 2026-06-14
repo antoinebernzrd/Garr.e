@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/app/profile")({
 });
 
 function ProfilePage() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const qc = useQueryClient();
   const { data: me } = useQuery({
     enabled: !!user,
@@ -24,7 +24,8 @@ function ProfilePage() {
     },
   });
 
-  const [name, setName] = useState("");
+  const [first, setFirst] = useState("");
+  const [last, setLast] = useState("");
   const [city, setCity] = useState("");
   const [color, setColor] = useState(AVATAR_COLORS[0]);
   const [saving, setSaving] = useState(false);
@@ -33,11 +34,15 @@ function ProfilePage() {
 
   useEffect(() => {
     if (me) {
-      setName(me.name);
+      // Fall back to the existing combined name if first/last aren't set yet.
+      setFirst(me.first_name ?? me.name ?? "");
+      setLast(me.last_name ?? "");
       setCity(me.city ?? "");
       setColor(me.avatar_color);
     }
   }, [me]);
+
+  const fullName = [first.trim(), last.trim()].filter(Boolean).join(" ");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -51,7 +56,13 @@ function ProfilePage() {
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
-      .update({ name: name.trim(), city: city.trim() || null, avatar_color: color })
+      .update({
+        name: fullName,
+        first_name: first.trim() || null,
+        last_name: last.trim() || null,
+        city: city.trim() || null,
+        avatar_color: color,
+      })
       .eq("id", user.id);
     setSaving(false);
     if (error) return toast.error(error.message);
@@ -72,17 +83,23 @@ function ProfilePage() {
       <h1 className="mt-3 font-display text-4xl tracking-tight">Profile</h1>
 
       <div className="mt-8 flex items-center gap-4">
-        <Avatar name={name || me.name} color={color} size={64} />
+        <Avatar name={fullName || me.name} color={color} size={64} />
         <div>
-          <p className="text-lg text-ink">{name || me.name}</p>
+          <p className="text-lg text-ink">{fullName || me.name}</p>
           <p className="text-sm text-muted-foreground">@{me.username}</p>
         </div>
       </div>
 
       <section className="mt-10 space-y-4 rounded-3xl border border-border bg-card/50 p-6">
-        <div>
-          <label className={label}>Name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} className={`${input} mt-2`} />
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <label className={label}>First name</label>
+            <input value={first} onChange={(e) => setFirst(e.target.value)} className={`${input} mt-2`} />
+          </div>
+          <div className="flex-1">
+            <label className={label}>Last name</label>
+            <input value={last} onChange={(e) => setLast(e.target.value)} className={`${input} mt-2`} />
+          </div>
         </div>
         <div>
           <label className={label}>City</label>
@@ -110,13 +127,21 @@ function ProfilePage() {
         <Toggle label="Friend requests" value={notifRequests} onChange={setNotifRequests} />
       </section>
 
-      <button
-        onClick={save}
-        disabled={saving}
-        className="mt-8 inline-flex h-11 items-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
-      >
-        {saving ? "Saving…" : "Save changes"}
-      </button>
+      <div className="mt-8 flex items-center justify-between">
+        <button
+          onClick={save}
+          disabled={saving}
+          className="inline-flex h-11 items-center rounded-full bg-primary px-6 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
+        >
+          {saving ? "Saving…" : "Save changes"}
+        </button>
+        <button
+          onClick={() => signOut()}
+          className="inline-flex h-11 items-center rounded-full border border-border bg-card px-5 text-sm text-ink-soft transition hover:text-destructive"
+        >
+          Sign out
+        </button>
+      </div>
     </main>
   );
 }

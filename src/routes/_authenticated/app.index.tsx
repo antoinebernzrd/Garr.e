@@ -13,7 +13,7 @@ import { ComposeUpdateDialog } from "@/components/loop/compose-update-dialog";
 import { AddFriendDialog } from "@/components/loop/add-friend-dialog";
 import { ManageGroupsDialog } from "@/components/loop/manage-groups-dialog";
 import type { FriendWithUpdate, Profile } from "@/lib/types";
-import { LayoutGrid, Globe, Share2, Search, Users, Clock, Settings2, UserPlus, Layers, Bell } from "lucide-react";
+import { LayoutGrid, Globe, Share2, Search, Users, Clock, Settings2, UserPlus, Layers, Bell, LogOut } from "lucide-react";
 import { Avatar } from "@/components/loop/avatar";
 import { RequestsBell } from "@/components/loop/requests-bell";
 
@@ -24,8 +24,8 @@ export const Route = createFileRoute("/_authenticated/app/")({
 type View = "grid" | "map" | "graph";
 
 function Dashboard() {
-  const { user } = useAuth();
-  
+  const { user, signOut } = useAuth();
+
   const qc = useQueryClient();
   const [view, setView] = useState<View>("grid");
   const [activeGroupIds, setActiveGroupIds] = useState<Set<string>>(new Set());
@@ -207,6 +207,13 @@ function Dashboard() {
                 <Avatar name={me.name} color={me.avatar_color} size={32} />
               </Link>
             )}
+            <button
+              onClick={() => signOut()}
+              title="Sign out"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-soft transition hover:bg-accent hover:text-ink"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
           </div>
         </div>
 

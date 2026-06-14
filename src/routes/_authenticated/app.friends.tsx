@@ -58,9 +58,10 @@ function FriendsPage() {
         arr.push(a.group_id);
         byFriend.set(a.friend_id, arr);
       }
+      const sortKey = (p: Profile) => (p.last_name || p.name || "").toLowerCase();
       return (profs ?? [])
         .map((p) => ({ profile: p as Profile, groupIds: byFriend.get((p as Profile).id) ?? [] }))
-        .sort((a, b) => a.profile.name.localeCompare(b.profile.name));
+        .sort((a, b) => sortKey(a.profile).localeCompare(sortKey(b.profile)));
     },
   });
 

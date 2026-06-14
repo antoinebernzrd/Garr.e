@@ -130,7 +130,9 @@ export type Database = {
           city: string | null
           created_at: string
           email: string | null
+          first_name: string | null
           id: string
+          last_name: string | null
           managed_by: string | null
           name: string
           updated_at: string
@@ -141,7 +143,9 @@ export type Database = {
           city?: string | null
           created_at?: string
           email?: string | null
+          first_name?: string | null
           id: string
+          last_name?: string | null
           managed_by?: string | null
           name: string
           updated_at?: string
@@ -152,7 +156,9 @@ export type Database = {
           city?: string | null
           created_at?: string
           email?: string | null
+          first_name?: string | null
           id?: string
+          last_name?: string | null
           managed_by?: string | null
           name?: string
           updated_at?: string
