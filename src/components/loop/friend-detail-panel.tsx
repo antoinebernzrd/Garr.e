@@ -1,9 +1,9 @@
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import type { FriendWithUpdate } from "@/lib/types";
 import { Avatar } from "./avatar";
-import type { UserGroup } from "@/lib/groups";
+import { AVATAR_COLORS, type UserGroup } from "@/lib/groups";
 import { formatDistanceToNow, format } from "date-fns";
-import { Hand, MapPin, ImageIcon, Send, Maximize2, Minimize2, PenLine } from "lucide-react";
+import { Hand, MapPin, ImageIcon, Send, Maximize2, Minimize2, PenLine, Pencil, Trash2, Check, X } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CITY_PRESETS, findCityPreset } from "@/lib/cities";
@@ -30,6 +30,12 @@ export function FriendDetailPanel({
   const [noteText, setNoteText] = useState("");
   const [noteCity, setNoteCity] = useState("");
   const [logging, setLogging] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [eFirst, setEFirst] = useState("");
+  const [eLast, setELast] = useState("");
+  const [eCity, setECity] = useState("");
+  const [eColor, setEColor] = useState(AVATAR_COLORS[0]);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const friendId = friend?.profile.id;
 
@@ -107,6 +113,48 @@ export function FriendDetailPanel({
     qc.invalidateQueries({ queryKey: ["friends"] });
   }
 
+  function startEdit() {
+    if (!friend) return;
+    const p = friend.profile;
+    setEFirst(p.first_name ?? p.name ?? "");
+    setELast(p.last_name ?? "");
+    setECity(p.city ?? "");
+    setEColor(p.avatar_color);
+    setEditing(true);
+  }
+
+  async function saveContact() {
+    const first = eFirst.trim();
+    const last = eLast.trim();
+    if (!first && !last) return;
+    setSavingEdit(true);
+    const { error } = await supabase
+      .from("profiles")
+      .update({
+        name: [first, last].filter(Boolean).join(" "),
+        first_name: first || null,
+        last_name: last || null,
+        city: eCity.trim() || null,
+        avatar_color: eColor,
+      })
+      .eq("id", friendId!);
+    setSavingEdit(false);
+    if (error) return toast.error(error.message);
+    setEditing(false);
+    toast.success("Contact updated");
+    qc.invalidateQueries({ queryKey: ["friends"] });
+  }
+
+  async function deleteContact() {
+    if (!confirm(`Delete ${friend?.profile.name}? This removes their card and all logged updates.`)) return;
+    // Managed profile delete cascades the friendship, updates and assignments.
+    const { error } = await supabase.from("profiles").delete().eq("id", friendId!);
+    if (error) return toast.error(error.message);
+    toast.success("Contact deleted");
+    qc.invalidateQueries({ queryKey: ["friends"] });
+    onClose();
+  }
+
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) { setFullscreen(false); onClose(); } }}>
       <SheetContent
@@ -126,6 +174,15 @@ export function FriendDetailPanel({
           >
             {fullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
           </button>
+          {isManaged && !editing && (
+            <button
+              onClick={startEdit}
+              title="Edit contact"
+              className="absolute right-24 top-5 inline-flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground hover:bg-accent hover:text-ink"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
           <div className="flex items-start gap-4">
             <Avatar name={profile.name} color={profile.avatar_color} size={64} />
             <div className="flex-1">
@@ -149,6 +206,74 @@ export function FriendDetailPanel({
         </div>
 
         <div className="space-y-7 p-6">
+          {isManaged && editing && (
+            <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
+              <Label>Edit contact</Label>
+              <div className="flex gap-2">
+                <input
+                  value={eFirst}
+                  onChange={(e) => setEFirst(e.target.value)}
+                  placeholder="First name"
+                  className="h-10 flex-1 rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-primary"
+                />
+                <input
+                  value={eLast}
+                  onChange={(e) => setELast(e.target.value)}
+                  placeholder="Last name"
+                  className="h-10 flex-1 rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-primary"
+                />
+              </div>
+              <input
+                value={eCity}
+                onChange={(e) => setECity(e.target.value)}
+                list="edit-contact-cities"
+                placeholder="City (optional)"
+                className="h-10 w-full rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-primary"
+              />
+              <datalist id="edit-contact-cities">
+                {CITY_PRESETS.map((c) => (
+                  <option key={c.name} value={c.name} />
+                ))}
+              </datalist>
+              <div className="flex flex-wrap gap-2">
+                {AVATAR_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => setEColor(c)}
+                    aria-label={c}
+                    className={`h-7 w-7 rounded-full transition ${
+                      eColor === c ? "ring-2 ring-ink ring-offset-2 ring-offset-background" : ""
+                    }`}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+              <div className="flex items-center justify-between pt-1">
+                <div className="flex gap-2">
+                  <button
+                    onClick={saveContact}
+                    disabled={savingEdit || (!eFirst.trim() && !eLast.trim())}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full bg-primary px-4 text-sm text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                  >
+                    <Check className="h-3.5 w-3.5" /> {savingEdit ? "Saving…" : "Save"}
+                  </button>
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-4 text-sm hover:bg-accent"
+                  >
+                    <X className="h-3.5 w-3.5" /> Cancel
+                  </button>
+                </div>
+                <button
+                  onClick={deleteContact}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full px-3 text-sm text-muted-foreground transition hover:text-destructive"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete
+                </button>
+              </div>
+            </section>
+          )}
           <section>
             <Label>Categories</Label>
             {allGroups.length === 0 ? (
