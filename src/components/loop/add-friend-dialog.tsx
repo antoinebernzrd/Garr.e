@@ -3,8 +3,9 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Avatar } from "./avatar";
-import { Search, Mail } from "lucide-react";
+import { Search, Mail, UserPlus } from "lucide-react";
 import type { Profile } from "@/lib/types";
+import { AVATAR_COLORS } from "@/lib/groups";
 
 export function AddFriendDialog({
   open,
@@ -17,12 +18,16 @@ export function AddFriendDialog({
   meId: string;
   onChanged: () => void;
 }) {
-  const [tab, setTab] = useState<"search" | "invite">("search");
+  const [tab, setTab] = useState<"search" | "invite" | "contact">("search");
   const [q, setQ] = useState("");
   const [results, setResults] = useState<Profile[]>([]);
   const [searching, setSearching] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
+  const [contactName, setContactName] = useState("");
+  const [contactCity, setContactCity] = useState("");
+  const [contactColor, setContactColor] = useState(AVATAR_COLORS[0]);
+  const [creating, setCreating] = useState(false);
 
   async function search() {
     const term = q.trim().toLowerCase();
@@ -71,6 +76,46 @@ export function AddFriendDialog({
     setInviting(false);
   }
 
+  // Create a managed contact: someone who won't use the app, but whom you track
+  // here. Stored as a profile you own (managed_by = you) + an auto-accepted
+  // friendship, so they appear alongside real friends everywhere.
+  async function createContact() {
+    if (!contactName.trim()) return;
+    setCreating(true);
+    const id =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const { error: pe } = await supabase.from("profiles").insert({
+      id,
+      name: contactName.trim(),
+      city: contactCity.trim() || null,
+      avatar_color: contactColor,
+      managed_by: meId,
+    });
+    if (pe) {
+      setCreating(false);
+      toast.error(pe.message);
+      return;
+    }
+    const { error: fe } = await supabase.from("friendships").insert({
+      requester_id: meId,
+      addressee_id: id,
+      status: "accepted",
+      accepted_at: new Date().toISOString(),
+    });
+    setCreating(false);
+    if (fe) {
+      toast.error(fe.message);
+      return;
+    }
+    toast.success(`${contactName.trim()} added as a contact`);
+    setContactName("");
+    setContactCity("");
+    onChanged();
+    onClose();
+  }
+
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-md overflow-hidden bg-background p-0">
@@ -82,7 +127,7 @@ export function AddFriendDialog({
         </div>
 
         <div className="flex border-b border-border">
-          {(["search", "invite"] as const).map((t) => (
+          {(["search", "invite", "contact"] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
@@ -90,7 +135,7 @@ export function AddFriendDialog({
                 tab === t ? "border-b-2 border-primary text-ink" : "text-muted-foreground"
               }`}
             >
-              {t === "search" ? "Search" : "Email invite"}
+              {t === "search" ? "Search" : t === "invite" ? "Email invite" : "Add contact"}
             </button>
           ))}
         </div>
@@ -140,7 +185,7 @@ export function AddFriendDialog({
                 )}
               </div>
             </div>
-          ) : (
+          ) : tab === "invite" ? (
             <div className="space-y-3">
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -163,6 +208,53 @@ export function AddFriendDialog({
                 If they're already on Loop, we'll send them a friend request. Otherwise, we'll keep
                 them in mind for when they join.
               </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="text-[11px] text-muted-foreground">
+                Track someone who isn't on Loop. They won't get an account — you keep their card and
+                post updates for them yourself.
+              </p>
+              <div className="relative">
+                <UserPlus className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  value={contactName}
+                  onChange={(e) => setContactName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && createContact()}
+                  placeholder="Name (e.g. Mum, Léa Martin)"
+                  className="h-10 w-full rounded-full border border-border bg-card pl-9 pr-3 text-sm outline-none focus:border-primary"
+                />
+              </div>
+              <input
+                value={contactCity}
+                onChange={(e) => setContactCity(e.target.value)}
+                placeholder="City (optional)"
+                className="h-10 w-full rounded-full border border-border bg-card px-4 text-sm outline-none focus:border-primary"
+              />
+              <div>
+                <p className="mb-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">Card color</p>
+                <div className="flex flex-wrap gap-2">
+                  {AVATAR_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => setContactColor(c)}
+                      aria-label={c}
+                      className={`h-7 w-7 rounded-full transition ${
+                        contactColor === c ? "ring-2 ring-ink ring-offset-2 ring-offset-background" : ""
+                      }`}
+                      style={{ backgroundColor: c }}
+                    />
+                  ))}
+                </div>
+              </div>
+              <button
+                onClick={createContact}
+                disabled={creating || !contactName.trim()}
+                className="h-9 rounded-full bg-primary px-4 text-sm text-primary-foreground hover:opacity-90 disabled:opacity-60"
+              >
+                {creating ? "Adding…" : "Add contact"}
+              </button>
             </div>
           )}
         </div>

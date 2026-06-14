@@ -79,7 +79,7 @@ function FriendRow({ friend, onOpen }: { friend: FriendWithUpdate; onOpen: () =>
                 {primaryGroup.name}
               </span>
             )}
-            <span className="text-[12px] text-white/30">@{profile.username}</span>
+            <span className="text-[12px] text-white/30">{profile.username ? `@${profile.username}` : "Contact"}</span>
           </div>
           <p className="mt-1 truncate text-[13px] text-white/55">
             {city && <span className="text-white/70">{city}</span>}

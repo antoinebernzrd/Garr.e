@@ -125,7 +125,7 @@ function Dashboard() {
       list = list.filter(
         (f) =>
           f.profile.name.toLowerCase().includes(q) ||
-          f.profile.username.toLowerCase().includes(q) ||
+          (f.profile.username ?? "").toLowerCase().includes(q) ||
           (f.profile.city ?? "").toLowerCase().includes(q) ||
           (f.latestUpdate?.text ?? "").toLowerCase().includes(q),
       );

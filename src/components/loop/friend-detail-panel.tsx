@@ -3,9 +3,10 @@ import type { FriendWithUpdate } from "@/lib/types";
 import { Avatar } from "./avatar";
 import type { UserGroup } from "@/lib/groups";
 import { formatDistanceToNow, format } from "date-fns";
-import { Hand, MapPin, ImageIcon, Send, Maximize2, Minimize2 } from "lucide-react";
+import { Hand, MapPin, ImageIcon, Send, Maximize2, Minimize2, PenLine } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { CITY_PRESETS, findCityPreset } from "@/lib/cities";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -26,6 +27,9 @@ export function FriendDetailPanel({
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
   const [fullscreen, setFullscreen] = useState(false);
+  const [noteText, setNoteText] = useState("");
+  const [noteCity, setNoteCity] = useState("");
+  const [logging, setLogging] = useState(false);
 
   const friendId = friend?.profile.id;
 
@@ -46,6 +50,7 @@ export function FriendDetailPanel({
 
   const { profile, latestUpdate } = friend;
   const city = latestUpdate?.city ?? profile.city;
+  const isManaged = !!profile.managed_by;
 
   async function toggleGroup(g: UserGroup) {
     if (assignedGroupIds.includes(g.id)) {
@@ -79,6 +84,29 @@ export function FriendDetailPanel({
     }
   }
 
+  // Log an update on behalf of a managed contact (CRM-style).
+  async function logUpdate() {
+    if (!noteText.trim()) return;
+    setLogging(true);
+    const preset = findCityPreset(noteCity);
+    const { error } = await supabase.from("updates").insert({
+      user_id: friendId!,
+      text: noteText.trim(),
+      city: noteCity.trim() || null,
+      lat: preset?.lat ?? null,
+      lng: preset?.lng ?? null,
+    });
+    if (!error && noteCity.trim()) {
+      await supabase.from("profiles").update({ city: noteCity.trim() }).eq("id", friendId!);
+    }
+    setLogging(false);
+    if (error) return toast.error(error.message);
+    toast.success("Update logged");
+    setNoteText("");
+    setNoteCity("");
+    qc.invalidateQueries({ queryKey: ["friends"] });
+  }
+
   return (
     <Sheet open={open} onOpenChange={(o) => { if (!o) { setFullscreen(false); onClose(); } }}>
       <SheetContent
@@ -103,7 +131,13 @@ export function FriendDetailPanel({
             <div className="flex-1">
               <h2 className="text-2xl font-semibold tracking-tight leading-tight">{profile.name}</h2>
               <p className="mt-0.5 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                @{profile.username}
+                {profile.username ? (
+                  `@${profile.username}`
+                ) : (
+                  <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] tracking-[0.12em] text-ink-soft">
+                    Contact
+                  </span>
+                )}
               </p>
               {city && (
                 <p className="mt-2 inline-flex items-center gap-1 text-sm text-ink-soft">
@@ -195,33 +229,72 @@ export function FriendDetailPanel({
             </section>
           )}
 
-          <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
-            <Label>Say hi</Label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => sendWave()}
-                disabled={sending}
-                className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-background px-3 text-sm hover:bg-accent disabled:opacity-50"
-              >
-                <Hand className="h-3.5 w-3.5" /> Wave
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                value={reply}
-                onChange={(e) => setReply(e.target.value)}
-                placeholder="Write a quick reply…"
-                className="h-10 flex-1 rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-primary"
+          {isManaged ? (
+            <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
+              <Label>Log an update</Label>
+              <p className="text-[11px] text-muted-foreground">
+                {profile.name.split(" ")[0]} isn't on Loop — jot down what they're up to and it shows on
+                their card, the map, and the graph.
+              </p>
+              <textarea
+                value={noteText}
+                onChange={(e) => setNoteText(e.target.value)}
+                rows={3}
+                maxLength={500}
+                placeholder="Started a new job at…, moved to…, had a baby…"
+                className="w-full resize-none rounded-xl border border-border bg-background p-3 text-sm outline-none focus:border-primary"
               />
-              <button
-                onClick={() => reply.trim() && sendWave(reply.trim())}
-                disabled={!reply.trim() || sending}
-                className="inline-flex h-10 items-center justify-center rounded-full bg-primary px-4 text-sm text-primary-foreground hover:opacity-90 disabled:opacity-50"
-              >
-                <Send className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </section>
+              <div className="flex items-center gap-2">
+                <input
+                  value={noteCity}
+                  onChange={(e) => setNoteCity(e.target.value)}
+                  list="contact-cities"
+                  placeholder="City (optional)"
+                  className="h-10 flex-1 rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-primary"
+                />
+                <datalist id="contact-cities">
+                  {CITY_PRESETS.map((c) => (
+                    <option key={c.name} value={c.name} />
+                  ))}
+                </datalist>
+                <button
+                  onClick={logUpdate}
+                  disabled={!noteText.trim() || logging}
+                  className="inline-flex h-10 items-center gap-1.5 rounded-full bg-primary px-4 text-sm text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                >
+                  <PenLine className="h-3.5 w-3.5" /> {logging ? "Saving…" : "Log"}
+                </button>
+              </div>
+            </section>
+          ) : (
+            <section className="space-y-3 rounded-2xl border border-border bg-card p-4">
+              <Label>Say hi</Label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => sendWave()}
+                  disabled={sending}
+                  className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border bg-background px-3 text-sm hover:bg-accent disabled:opacity-50"
+                >
+                  <Hand className="h-3.5 w-3.5" /> Wave
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  value={reply}
+                  onChange={(e) => setReply(e.target.value)}
+                  placeholder="Write a quick reply…"
+                  className="h-10 flex-1 rounded-full border border-border bg-background px-4 text-sm outline-none focus:border-primary"
+                />
+                <button
+                  onClick={() => reply.trim() && sendWave(reply.trim())}
+                  disabled={!reply.trim() || sending}
+                  className="inline-flex h-10 items-center justify-center rounded-full bg-primary px-4 text-sm text-primary-foreground hover:opacity-90 disabled:opacity-50"
+                >
+                  <Send className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </section>
+          )}
         </div>
       </SheetContent>
     </Sheet>

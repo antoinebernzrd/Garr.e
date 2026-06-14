@@ -129,33 +129,44 @@ export type Database = {
           avatar_color: string
           city: string | null
           created_at: string
-          email: string
+          email: string | null
           id: string
+          managed_by: string | null
           name: string
           updated_at: string
-          username: string
+          username: string | null
         }
         Insert: {
           avatar_color?: string
           city?: string | null
           created_at?: string
-          email: string
+          email?: string | null
           id: string
+          managed_by?: string | null
           name: string
           updated_at?: string
-          username: string
+          username?: string | null
         }
         Update: {
           avatar_color?: string
           city?: string | null
           created_at?: string
-          email?: string
+          email?: string | null
           id?: string
+          managed_by?: string | null
           name?: string
           updated_at?: string
-          username?: string
+          username?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_managed_by_fkey"
+            columns: ["managed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       updates: {
         Row: {
