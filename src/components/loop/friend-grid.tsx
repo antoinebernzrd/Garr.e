@@ -1,5 +1,4 @@
 import type { FriendWithUpdate } from "@/lib/types";
-import { Avatar } from "./avatar";
 import { primaryGroupColor } from "@/lib/groups";
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -13,6 +12,16 @@ function daysAgo(iso: string): string {
   const m = Math.floor(d / 30);
   if (m < 12) return `${m}mo ago`;
   return `${Math.floor(m / 12)}y ago`;
+}
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 }
 
 export function FriendGrid({
@@ -30,75 +39,51 @@ export function FriendGrid({
 
   if (sorted.length === 0) {
     return (
-      <div className="rounded-lg border border-white/5 bg-white/[0.02] p-12 text-center font-sans">
+      <div className="border border-white/5 bg-white/[0.02] p-12 text-center">
         <p className="text-base text-white/60">No friends match this view.</p>
       </div>
     );
   }
 
   return (
-    <ul className="divide-y divide-white/[0.06] overflow-hidden rounded-lg border border-white/[0.06] bg-[#0f0f0f] font-sans">
+    <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
       {sorted.map((f) => (
-        <FriendRow key={f.profile.id} friend={f} onOpen={() => onOpen(f.profile.id)} />
+        <FriendCard key={f.profile.id} friend={f} onOpen={() => onOpen(f.profile.id)} />
       ))}
     </ul>
   );
 }
 
-function FriendRow({ friend, onOpen }: { friend: FriendWithUpdate; onOpen: () => void }) {
+function FriendCard({ friend, onOpen }: { friend: FriendWithUpdate; onOpen: () => void }) {
   const { profile, latestUpdate, groups } = friend;
-  const city = latestUpdate?.city ?? profile.city;
-  const accent = primaryGroupColor(groups);
-  const primaryGroup = groups[0];
+  const accent = primaryGroupColor(groups) ?? profile.avatar_color;
 
   return (
     <li>
       <button
         onClick={onOpen}
-        className="group relative flex w-full items-center gap-5 px-5 py-4 text-left transition-colors hover:bg-white/[0.03]"
+        className="group w-full text-left transition-opacity hover:opacity-80"
       >
-        {/* Left color accent */}
-        {accent && (
-          <span
-            aria-hidden
-            className="absolute left-0 top-0 h-full w-[3px]"
-            style={{ background: accent }}
-          />
-        )}
-
-        <Avatar name={profile.name} color={profile.avatar_color} size={56} />
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2.5">
-            <p className="truncate text-[15px] font-medium text-white">{profile.name}</p>
-            {primaryGroup && (
-              <span
-                className="inline-flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10.5px] font-medium uppercase tracking-wider text-white/80"
-                style={{ background: `${primaryGroup.color}22`, color: primaryGroup.color }}
-              >
-                {primaryGroup.name}
-              </span>
-            )}
-            <span className="text-[12px] text-white/30">{profile.username ? `@${profile.username}` : "Contact"}</span>
-          </div>
-          <p className="mt-1 truncate text-[13px] text-white/55">
-            {city && <span className="text-white/70">{city}</span>}
-            {city && latestUpdate && <span className="mx-2 text-white/20">·</span>}
-            {latestUpdate ? (
-              latestUpdate.text
-            ) : (
-              <span className="italic text-white/30">No update yet</span>
-            )}
-          </p>
+        {/* Color block */}
+        <div
+          className="relative flex aspect-[3/2] w-full items-end overflow-hidden p-3"
+          style={{ backgroundColor: accent }}
+        >
+          {/* update dot */}
+          {latestUpdate && (
+            <span className="absolute right-2.5 top-2.5 h-1.5 w-1.5 bg-white" />
+          )}
         </div>
 
-        <div className="hidden flex-shrink-0 text-right sm:block">
+        {/* Label */}
+        <div className="mt-2">
+          <p className="truncate text-[13px] font-medium text-foreground">{profile.name}</p>
           {latestUpdate ? (
-            <span className="text-[12px] tabular-nums text-white/45">
+            <p className="mt-0.5 truncate text-[11px] text-ink-soft">
               {daysAgo(latestUpdate.created_at)}
-            </span>
+            </p>
           ) : (
-            <span className="text-[12px] text-white/25">—</span>
+            <p className="mt-0.5 text-[11px] italic text-ink-soft opacity-50">no update</p>
           )}
         </div>
       </button>

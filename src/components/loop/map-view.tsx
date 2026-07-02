@@ -547,8 +547,8 @@ export function MapView({
         </div>
       </div>
 
-      {/* group filter */}
-      <div className="pointer-events-none absolute bottom-4 left-0 right-0 z-40 flex justify-center px-3">
+      {/* group filter — hidden */}
+      {false && <div className="pointer-events-none absolute bottom-4 left-0 right-0 z-40 flex justify-center px-3">
         <div className="pointer-events-auto flex max-w-[90%] flex-wrap items-center gap-1.5 rounded-full border border-white/10 bg-black/70 px-2 py-1.5 backdrop-blur">
           {groups.length === 0 && (
             <span className="px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-white/40">
@@ -581,7 +581,7 @@ export function MapView({
             );
           })}
         </div>
-      </div>
+      </div>}
     </div>
   );
 }

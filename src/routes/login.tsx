@@ -10,13 +10,34 @@ import pc3 from "@/assets/postcards/pc-3.jpg";
 import pc4 from "@/assets/postcards/pc-4.jpg";
 import pc5 from "@/assets/postcards/pc-5.jpg";
 import pc6 from "@/assets/postcards/pc-6.jpg";
+import pcArch from "@/assets/postcards/30506627.jpeg";
+import pcDevil from "@/assets/postcards/av_85584 copy 2.png";
+import pcGiac from "@/assets/postcards/Man-Pointing.jpg";
+import pcIMG0 from "@/assets/postcards/IMG_0680.jpeg";
+import pcIMG3 from "@/assets/postcards/IMG_3231.jpeg";
+import pcB from "@/assets/postcards/8c90831c831c7a10d5700e143721c2ef.jpg";
+import pcNNG from "@/assets/postcards/ignant-architecture-neue-nationalgalerie-08-2880x2259.jpg.webp";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
-const userCards = [pc1, pc2, pc3, pc4, pc5, pc6];
-const allCards = Array.from({ length: 24 }, (_, i) => userCards[i % userCards.length]);
+const sourceCards = [
+  pc1, pc2, pc3, pc4, pc5, pc6,
+  pcArch, pcDevil, pcGiac, pcIMG0, pcIMG3, pcB, pcNNG,
+];
+const allCards = Array.from({ length: 30 }, (_, i) => sourceCards[i % sourceCards.length]);
+
+// Pre-bake randomness so each card always has unique fall trajectory
+const cardFallData = allCards.map(() => ({
+  xMid: (Math.random() - 0.5) * 120,
+  xEnd: (Math.random() - 0.5) * 300,
+  yMid: 150 + Math.random() * 200,
+  yEnd: 600 + Math.random() * 600,
+  rotMid: (Math.random() - 0.5) * 120,
+  rotEnd: (Math.random() - 0.5) * 540,
+  dur: 1.1 + Math.random() * 0.8,
+}));
 
 type Stage = "cards" | "falling" | "login";
 
@@ -28,7 +49,7 @@ function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [stage, setStage] = useState<Stage>("cards");
   const [fallenCards, setFallenCards] = useState<Set<number>>(new Set());
-
+  const [showForm, setShowForm] = useState(false);
   useEffect(() => {
     if (!loading && user) navigate({ to: "/app" });
   }, [loading, user, navigate]);
@@ -41,7 +62,7 @@ function LoginPage() {
         setFallenCards((prev) => new Set(prev).add(i));
       }, delay);
     });
-    window.setTimeout(() => setStage("login"), 1800);
+    window.setTimeout(() => setStage("login"), 300);
   }
 
   async function onSubmit(e: React.FormEvent) {
@@ -54,42 +75,31 @@ function LoginPage() {
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-[#161e2e]">
+    <div className="relative h-screen w-full overflow-hidden bg-black">
 
       {/* Cards grid */}
-      <div className="absolute inset-0 grid grid-cols-3 gap-x-4 gap-y-2 p-6 sm:grid-cols-4 md:grid-cols-6 md:gap-x-5 md:gap-y-2.5 md:p-12">
+      <div className="absolute inset-0 grid grid-cols-3 grid-rows-10 gap-x-4 gap-y-2 p-6 sm:grid-cols-4 sm:grid-rows-8 md:grid-cols-6 md:grid-rows-5 md:gap-x-5 md:gap-y-2.5 md:p-12">
         {allCards.map((src, i) => {
           const dur = 6 + ((i * 1.7) % 5);
           const xAmp = 4 + ((i * 3) % 7);
           const yAmp = 6 + ((i * 5) % 9);
           const rotAmp = 0.6 + ((i * 0.37) % 1.4);
           const fallen = fallenCards.has(i);
+          const fd = cardFallData[i];
 
           return (
             <motion.div
               key={i}
-              className="relative aspect-[3/2] bg-white p-[3px] shadow-[0_10px_30px_-15px_rgba(0,0,0,0.6)] ring-1 ring-black/10"
+              className="relative bg-white p-[3px] shadow-[0_10px_30px_-15px_rgba(0,0,0,0.6)] ring-1 ring-black/10"
               initial={{ opacity: 0, y: 12, scale: 0.96 }}
               animate={
                 fallen
-                  ? {
-                      y: [0, 60, 220, 520, 1200],
-                      x: [0, -10, 30, -20, 60],
-                      rotate: [0, 25, -40, 90, 220],
-                      opacity: [1, 1, 1, 0.9, 0],
-                      zIndex: 60,
-                    }
-                  : {
-                      opacity: 1,
-                      scale: 1,
-                      x: [0, xAmp, -xAmp * 0.6, xAmp * 0.4, 0],
-                      y: [0, -yAmp, yAmp * 0.5, -yAmp * 0.3, 0],
-                      rotate: [0, rotAmp, -rotAmp * 0.7, rotAmp * 0.4, 0],
-                    }
+                  ? { y: [0, fd.yMid, fd.yEnd], x: [0, fd.xMid, fd.xEnd], rotate: [0, fd.rotMid, fd.rotEnd], opacity: [1, 1, 0], zIndex: 60 }
+                  : { opacity: 1, scale: 1, x: [0, xAmp, -xAmp * 0.6, xAmp * 0.4, 0], y: [0, -yAmp, yAmp * 0.5, -yAmp * 0.3, 0], rotate: [0, rotAmp, -rotAmp * 0.7, rotAmp * 0.4, 0] }
               }
               transition={
                 fallen
-                  ? { duration: 1.6, ease: [0.55, 0, 0.85, 0.2] as const, times: [0, 0.15, 0.4, 0.7, 1] }
+                  ? { duration: fd.dur, ease: [0.4, 0, 0.9, 0.6] as const, times: [0, 0.4, 1] }
                   : {
                       opacity: { delay: i * 0.03, duration: 0.7, ease: "easeOut" },
                       scale: { delay: i * 0.03, duration: 0.7, ease: "easeOut" },
@@ -114,7 +124,7 @@ function LoginPage() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5 }}
             transition={{ delay: 0.9, duration: 0.35, ease: "easeOut" }}
-            className="absolute left-1/2 top-1/2 z-50 h-11 w-11 -translate-x-1/2 -translate-y-1/2 bg-red-500"
+            className="absolute left-1/2 top-1/2 z-50 h-4 w-4 -translate-x-1/2 -translate-y-1/2 bg-red-500"
             style={{ borderRadius: 0 }}
           />
         )}
@@ -124,51 +134,89 @@ function LoginPage() {
       <AnimatePresence>
         {stage === "login" && (
           <motion.div
-            initial={{ opacity: 0, filter: "blur(24px)", scale: 1.04 }}
-            animate={{ opacity: 1, filter: "blur(0px)", scale: 1 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="absolute inset-0 z-50 flex flex-col items-center justify-center px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.1 }}
+            className="absolute inset-0 z-50 flex items-center"
+            style={{ fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif" }}
           >
-            <h1
-              className="mb-8 text-4xl text-white"
-              style={{ fontFamily: '"Geist", ui-sans-serif, sans-serif', fontWeight: 600, letterSpacing: "0.02em" }}
-            >
-              Garr.e
-            </h1>
+            {/* Left — login */}
+            <div className="flex h-full w-full flex-col items-center justify-center md:w-1/2">
+              <h1 className="mb-8 text-4xl font-semibold tracking-tight text-white">
+                Garr.e
+              </h1>
+              <AnimatePresence mode="wait">
+                {!showForm ? (
+                  <motion.button
+                    key="block"
+                    onClick={() => setShowForm(true)}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 1, 0.1, 1, 0.3, 1] }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.9, times: [0, 0.12, 0.25, 0.45, 0.65, 1], ease: "linear" }}
+                    className="flex w-full max-w-xs items-center justify-center bg-white py-10 text-sm font-medium tracking-widest text-black uppercase"
+                    style={{ borderRadius: 0 }}
+                  >
+                    Sign in
+                  </motion.button>
+                ) : (
+                  <motion.div
+                    key="form"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: [0, 1, 0.1, 1, 0.3, 1] }}
+                    transition={{ duration: 0.7, times: [0, 0.12, 0.25, 0.45, 0.65, 1], ease: "linear" }}
+                    className="w-full max-w-xs border border-white p-6"
+                  >
+                    <form onSubmit={onSubmit} autoComplete="off" className="flex w-full flex-col gap-3">
+                      <input
+                        type="email"
+                        required
+                        autoComplete="off"
+                        placeholder="Email"
+                        readOnly
+                        onFocus={(e) => e.currentTarget.removeAttribute("readonly")}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="h-11 w-full bg-zinc-700 px-4 text-sm text-white placeholder:text-white/40 outline-none focus:bg-zinc-600 transition"
+                        style={{ borderRadius: 0, border: "none" }}
+                      />
+                      <input
+                        type="password"
+                        required
+                        autoComplete="off"
+                        placeholder="Password"
+                        readOnly
+                        onFocus={(e) => e.currentTarget.removeAttribute("readonly")}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="h-11 w-full bg-zinc-700 px-4 text-sm text-white placeholder:text-white/40 outline-none focus:bg-zinc-600 transition"
+                        style={{ borderRadius: 0, border: "none" }}
+                      />
+                      <button
+                        disabled={submitting}
+                        className="h-11 w-full bg-zinc-600 px-4 text-sm font-medium text-white transition hover:bg-zinc-500 disabled:opacity-60"
+                        style={{ borderRadius: 0, border: "none" }}
+                      >
+                        {submitting ? "Signing in…" : "Sign in"}
+                      </button>
+                      <p className="mt-1 text-xs text-white/50">
+                        New here?{" "}
+                        <Link to="/signup" className="text-white underline underline-offset-2">
+                          Make an account
+                        </Link>
+                      </p>
+                    </form>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-            <form onSubmit={onSubmit} className="flex w-full max-w-sm flex-col gap-3">
-              <input
-                type="email"
-                required
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-11 w-full border border-white/20 bg-white/[0.06] px-4 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/50 transition"
-                style={{ borderRadius: 0 }}
-              />
-              <input
-                type="password"
-                required
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-11 w-full border border-white/20 bg-white/[0.06] px-4 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/50 transition"
-                style={{ borderRadius: 0 }}
-              />
-              <button
-                disabled={submitting}
-                className="h-11 w-full border border-white/25 bg-white/10 px-4 text-sm font-medium text-white transition hover:bg-white/15 disabled:opacity-60"
-                style={{ borderRadius: 0 }}
-              >
-                {submitting ? "Signing in…" : "Sign in"}
-              </button>
-              <p className="mt-1 text-center text-xs text-white/50">
-                New here?{" "}
-                <Link to="/signup" className="text-white underline underline-offset-2">
-                  Make an account
-                </Link>
+            {/* Right — quote */}
+            <div className="hidden h-full w-1/2 flex-col items-center justify-center md:flex">
+              <p className="max-w-xs text-2xl font-light leading-snug tracking-tight text-white/70 italic">
+                "I keep cards for shared moments that matter"
               </p>
-            </form>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

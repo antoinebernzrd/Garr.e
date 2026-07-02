@@ -56,10 +56,10 @@ export function RequestsBell() {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card hover:bg-accent">
+        <button className="relative inline-flex h-9 w-9 items-center justify-center text-ink-soft transition hover:bg-accent hover:text-ink">
           <Bell className="h-4 w-4" />
           {pending.length > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-primary-foreground">
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center bg-primary px-1 text-[10px] font-medium text-primary-foreground">
               {pending.length}
             </span>
           )}
@@ -83,7 +83,7 @@ export function RequestsBell() {
                   </div>
                   <button
                     onClick={() => accept(r.id)}
-                    className="rounded-full bg-primary px-2.5 py-1 text-[11px] text-primary-foreground hover:opacity-90"
+                    className="bg-primary px-2.5 py-1 text-[11px] text-primary-foreground hover:opacity-90"
                   >
                     Accept
                   </button>

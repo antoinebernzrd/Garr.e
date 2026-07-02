@@ -1,17 +1,19 @@
 import type { Database } from "@/integrations/supabase/types";
 
-export type UserGroup = Database["public"]["Tables"]["user_groups"]["Row"];
+export type UserGroup = Database["public"]["Tables"]["user_groups"]["Row"] & {
+  parent_id?: string | null;
+};
 
-// Palette of 8 distinct colors offered when creating/editing a group
+// Palette — bold saturated primaries (reference: personal site color blocks)
 export const GROUP_PALETTE = [
-  "#C2410C", // amber
-  "#0F766E", // teal
-  "#1E3A8A", // navy
-  "#9D174D", // wine
-  "#4D7C0F", // olive
-  "#7C2D12", // umber
-  "#475569", // slate
-  "#B45309", // ochre
+  "#1a1a1a", // near-black
+  "#C41E3A", // crimson
+  "#C8E000", // chartreuse
+  "#E8390E", // orange-red
+  "#1B3A8C", // cobalt navy
+  "#D4A017", // warm ochre
+  "#006B54", // deep green
+  "#8B1A3A", // burgundy
 ];
 
 // Same palette doubles as default avatar colors

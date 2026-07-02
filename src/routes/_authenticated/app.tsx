@@ -6,7 +6,7 @@ export const Route = createFileRoute("/_authenticated/app")({
 
 function AppLayout() {
   return (
-    <div className="min-h-screen bg-background bg-grain font-sans text-ink">
+    <div className="min-h-screen bg-background font-sans text-ink">
       <Outlet />
     </div>
   );
