@@ -38,8 +38,13 @@ and never commit it.
 |---------|--------------|
 | `bun run dev` | Dev server |
 | `bun run build` | Production build |
-| `bun run lint` | ESLint |
+| `bun run test` | Vitest: city lookup, group palette, and schema checks (RLS on every table) |
+| `bun run lint` | ESLint (currently reports formatting issues; run `bun run format` to fix most) |
 | `bun run format` | Prettier |
+
+## Secrets
+
+Gitleaks runs in CI. Locally: `brew install gitleaks && git config core.hooksPath .githooks`.
 
 ## Layout
 
