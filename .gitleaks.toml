@@ -6,3 +6,11 @@ useDefault = true
 id = "telegram-session-file"
 description = "Telegram session file"
 path = '''(?i)\.session$'''
+
+# The Supabase publishable (anon) key is public by design: it ships in the
+# browser bundle and is protected by row-level security. Only this key, only
+# in wrangler.jsonc. The service-role key must never appear anywhere.
+[allowlist]
+description = "Supabase publishable key in wrangler.jsonc"
+paths = ['''^wrangler\.jsonc$''']
+regexes = ['''"SUPABASE_PUBLISHABLE_KEY"\s*:\s*"eyJ''']
